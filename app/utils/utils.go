@@ -94,6 +94,7 @@ func unzip(archivePath, path, zipName string) {
 	fmt.Printf("Unzipping %s, please wait...\n", zipName)
 	archive, err := zip.OpenReader(archivePath)
 	if err != nil {
+		fmt.Println(err.Error())
 		panic(err)
 	}
 	defer archive.Close()
@@ -130,13 +131,15 @@ func unzip(archivePath, path, zipName string) {
 }
 
 func copyCommand(src, dest string) {
-	executeCommand("/C", "copy", src, dest)
+	cmd := exec.Command("cmd.exe", "/C", "copy", src, dest)
+	_ = cmd.Run()
 }
 
 func StartNICM() {
 	fmt.Println("Starting NICM Application...")
 	startPath := consts.ClientRootDir + "\\" + consts.NicmPathToBat + consts.NicmBatName
 	_ = os.Chdir(startPath)
+	fmt.Println(startPath)
 	executeCommand("/C", startPath)
 
 }
@@ -144,15 +147,6 @@ func StartNICM() {
 func executeCommand(args ...string) {
 	cmd := exec.Command("cmd.exe", args...)
 	_ = cmd.Start()
-	//cmdReader, _ := cmd.StdoutPipe()
-	//scanner := bufio.NewScanner(cmdReader)
-	//go func() {
-	//	for scanner.Scan() {
-	//		//fmt.Printf("\t > %s\n", scanner.Text())
-	//	}
-	//}()
-	//_ = cmd.Start()
-	//_ = cmd.Wait()
 }
 
 func SyncWithRepo(config ConfigMap) {

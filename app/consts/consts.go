@@ -20,7 +20,7 @@ var (
 
 	ArchiveExtension = ".zip"
 
-	NicmPathToBat = "\\run5\\nicm\\"
+	NicmPathToBat = "nicm\\run5\\nicm\\"
 	NicmBatName   = "start_nicm_client.bat"
 
 	LockFileName = "sync_nicm_local_env.lock"
