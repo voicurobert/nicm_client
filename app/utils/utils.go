@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/bigkevmcd/go-configparser"
 	"io"
+	"log"
 	"nicm_client/app/consts"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func GetVersion() string {
@@ -77,7 +79,7 @@ func SyncArchives(config ConfigMap) {
 			clientPath = consts.ClientRootDir + "\\"
 			sourceArchivePath = consts.RepoRootDir + "\\" + archiveName + consts.ArchiveExtension
 		}
-		fmt.Printf("Copying %s, please wait...\n", archiveName)
+		fmt.Printf("Copying %s from source: %s, to: %s, please wait...\n", archiveName, sourceArchivePath, consts.ClientRootDir)
 		copyCommand(sourceArchivePath, consts.ClientRootDir)
 
 		if _, err := os.Stat(fullClientPath); err == nil {
@@ -141,12 +143,20 @@ func StartNICM() {
 	_ = os.Chdir(startPath)
 	fmt.Println(startPath)
 	executeCommand("/C", startPath)
-
+	time.Sleep(time.Second * 140)
+	fmt.Println("Started NICM application, you can now close the window.")
 }
 
 func executeCommand(args ...string) {
 	cmd := exec.Command("cmd.exe", args...)
-	_ = cmd.Start()
+	err := cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = cmd.Wait()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func SyncWithRepo(config ConfigMap) {

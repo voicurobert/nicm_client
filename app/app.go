@@ -13,13 +13,11 @@ func StartApplication() {
 	locked, err := fileLock.TryLock()
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		panic(err.Error())
 	}
 
 	if locked {
-		fmt.Println("[# INFO #] Sync started")
-		fmt.Println()
+		fmt.Printf("[# INFO #] Sync started\n\n")
 		clientVersion := utils.GetVersion()
 
 		if clientVersion == "0" {
@@ -39,21 +37,17 @@ func StartApplication() {
 					utils.SyncWithRepo(customConfig)
 					utils.StartNICM()
 				} else {
-					fmt.Println("[# INFO #] NICM is up to date!")
-					fmt.Println()
+					fmt.Printf("[# INFO #] NICM is up to date!\n'n")
 					utils.StartNICM()
 				}
 			}
 		}
 
 		err := fileLock.Unlock()
-
 		if err != nil {
 			return
 		}
-
 	} else {
-		fmt.Println("[# INFO #] Please wait! Sync already running!")
-		fmt.Println()
+		fmt.Printf("[# INFO #] Please wait! Sync already running!\n\n")
 	}
 }
