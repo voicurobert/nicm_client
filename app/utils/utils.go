@@ -4,7 +4,9 @@ import (
 	"archive/zip"
 	"fmt"
 	"github.com/bigkevmcd/go-configparser"
+	"github.com/fatih/color"
 	"io"
+	"io/fs"
 	"log"
 	"nicm_client/app/consts"
 	"os"
@@ -79,7 +81,7 @@ func SyncArchives(config ConfigMap) {
 			clientPath = consts.ClientRootDir + "\\"
 			sourceArchivePath = consts.RepoRootDir + "\\" + archiveName + consts.ArchiveExtension
 		}
-		fmt.Printf("Copying %s from source: %s, to: %s, please wait...\n", archiveName, sourceArchivePath, consts.ClientRootDir)
+		color.Yellow("Copying %s from source: %s, to: %s, please wait...\n", archiveName, sourceArchivePath, consts.ClientRootDir)
 		copyCommand(sourceArchivePath, consts.ClientRootDir)
 
 		if _, err := os.Stat(fullClientPath); err == nil {
@@ -93,7 +95,7 @@ func SyncArchives(config ConfigMap) {
 }
 
 func unzip(archivePath, path, zipName string) {
-	fmt.Printf("Unzipping %s, please wait...\n", zipName)
+	color.Yellow("Unzipping %s, please wait...\n", zipName)
 	archive, err := zip.OpenReader(archivePath)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -105,7 +107,7 @@ func unzip(archivePath, path, zipName string) {
 		filePath := filepath.Join(path, f.Name)
 
 		if !strings.HasPrefix(filePath, filepath.Clean(path)+string(os.PathSeparator)) {
-			fmt.Println("invalid file path")
+			color.Red("invalid file path")
 			return
 		}
 		if f.FileInfo().IsDir() {
@@ -138,13 +140,36 @@ func copyCommand(src, dest string) {
 }
 
 func StartNICM() {
-	fmt.Println("Starting NICM Application...")
+	fullPath := fmt.Sprintf(
+		"%s\\%s%s%d%s",
+		consts.ClientRootDir, consts.NicmPathToFile,
+		consts.NicmFileName,
+		time.Now().UnixNano(),
+		".txt")
+
+	_ = os.WriteFile(fullPath, nil, 0644)
+
+	color.Green("Starting NICM Application... this can take a while, please wait. DO NOT CLOSE this windows, it will close automatically!")
 	startPath := consts.ClientRootDir + "\\" + consts.NicmPathToBat + consts.NicmBatName
 	_ = os.Chdir(startPath)
-	fmt.Println(startPath)
-	executeCommand("/C", startPath)
-	time.Sleep(time.Second * 140)
-	fmt.Println("Started NICM application, you can now close the window.")
+
+	executeCommand("/C", startPath, fullPath)
+	checkNicmFile(fullPath)
+	color.Green("Started NICM application!")
+}
+
+func checkNicmFile(filePath string) {
+	for {
+		time.Sleep(time.Second)
+		value, err := os.ReadFile(filePath)
+		if err != nil {
+			panic(err)
+		}
+		txt := string(value)
+		if txt == "done" {
+			return
+		}
+	}
 }
 
 func executeCommand(args ...string) {
@@ -159,7 +184,22 @@ func executeCommand(args ...string) {
 	}
 }
 
+func deleteOldNicmFiles() {
+	rootPath := fmt.Sprintf("%s\\%s", consts.ClientRootDir, consts.NicmPathToFile)
+	fmt.Println(rootPath)
+	fileName := "nicm_"
+	filepath.Walk(rootPath, func(path string, info fs.FileInfo, err error) error {
+		if !info.IsDir() {
+			if strings.HasPrefix(info.Name(), fileName) {
+				_ = os.Remove(path)
+			}
+		}
+		return nil
+	})
+}
+
 func SyncWithRepo(config ConfigMap) {
+	deleteOldNicmFiles()
 	SyncArchives(config)
 	UpdateVersion(config["BASE"]["version"])
 }

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"fmt"
+	"github.com/fatih/color"
 	"github.com/gofrs/flock"
 	"nicm_client/app/consts"
 	"nicm_client/app/utils"
@@ -17,7 +17,7 @@ func StartApplication() {
 	}
 
 	if locked {
-		fmt.Printf("[# INFO #] Sync started\n\n")
+		color.Magenta("[# INFO #] Sync started\n\n")
 		clientVersion := utils.GetVersion()
 
 		if clientVersion == "0" {
@@ -37,7 +37,7 @@ func StartApplication() {
 					utils.SyncWithRepo(customConfig)
 					utils.StartNICM()
 				} else {
-					fmt.Printf("[# INFO #] NICM is up to date!\n'n")
+					color.Magenta("[# INFO #] NICM is up to date!\n\n")
 					utils.StartNICM()
 				}
 			}
@@ -48,6 +48,6 @@ func StartApplication() {
 			return
 		}
 	} else {
-		fmt.Printf("[# INFO #] Please wait! Sync already running!\n\n")
+		color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
 	}
 }
