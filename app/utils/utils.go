@@ -22,7 +22,8 @@ func GetVersion() string {
 	if err != nil {
 		panic(err)
 	}
-	return string(nr)
+
+	return strings.TrimSpace(string(nr))
 }
 
 type ConfigMap map[string]map[string]string
@@ -81,7 +82,7 @@ func SyncArchives(config ConfigMap) {
 			clientPath = consts.ClientRootDir + "\\"
 			sourceArchivePath = consts.RepoRootDir + "\\" + archiveName + consts.ArchiveExtension
 		}
-		color.Yellow("Copying %s from source: %s, to: %s, please wait...\n", archiveName, sourceArchivePath, consts.ClientRootDir)
+		//color.Yellow("Copying %s from source: %s, to: %s, please wait...\n", archiveName, sourceArchivePath, consts.ClientRootDir)
 		copyCommand(sourceArchivePath, consts.ClientRootDir)
 
 		if _, err := os.Stat(fullClientPath); err == nil {
@@ -140,6 +141,7 @@ func copyCommand(src, dest string) {
 }
 
 func StartNICM() {
+	deleteOldNicmFiles()
 	fullPath := fmt.Sprintf(
 		"%s\\%s%s%d%s",
 		consts.ClientRootDir, consts.NicmPathToFile,
@@ -149,7 +151,7 @@ func StartNICM() {
 
 	_ = os.WriteFile(fullPath, nil, 0644)
 
-	color.Green("Starting NICM Application... this can take a while, please wait. DO NOT CLOSE this windows, it will close automatically!")
+	color.Green("Starting NICM Application... this can take a while, please wait. \nDO NOT CLOSE this window, it will close automatically!")
 	startPath := consts.ClientRootDir + "\\" + consts.NicmPathToBat + consts.NicmBatName
 	_ = os.Chdir(startPath)
 
@@ -186,9 +188,9 @@ func executeCommand(args ...string) {
 
 func deleteOldNicmFiles() {
 	rootPath := fmt.Sprintf("%s\\%s", consts.ClientRootDir, consts.NicmPathToFile)
-	fmt.Println(rootPath)
+
 	fileName := "nicm_"
-	filepath.Walk(rootPath, func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(rootPath, func(path string, info fs.FileInfo, err error) error {
 		if !info.IsDir() {
 			if strings.HasPrefix(info.Name(), fileName) {
 				_ = os.Remove(path)
@@ -196,10 +198,10 @@ func deleteOldNicmFiles() {
 		}
 		return nil
 	})
+	fmt.Println(err.Error())
 }
 
 func SyncWithRepo(config ConfigMap) {
-	deleteOldNicmFiles()
 	SyncArchives(config)
 	UpdateVersion(config["BASE"]["version"])
 }

@@ -8,12 +8,12 @@ import (
 var (
 	ClientRootDir, _ = os.Getwd()
 
-	//RepoRootDir       = "\\dakar\\NICM_Repository\\nicm_sync_repos"
+	//RepoRootDir       = "\\\\dakar\\NICM_Repository\\nicm_sync_repos2"
 	//DefaultConfigPath = RepoRootDir + "sync_nicm_default.config"
 	//CustomConfigPath  = RepoRootDir + "sync_nicm.config"
 	//VersionFilePath   = RepoRootDir + "version"
 
-	RepoRootDir       = "C:\\sw\\nicm\\nicm_529"
+	RepoRootDir       = "\\\\dakar\\NICM_Repository\\nicm_sync_repos2"
 	DefaultConfigPath = path.Join(RepoRootDir, "sync_nicm_default.config")
 	CustomConfigPath  = path.Join(RepoRootDir, "sync_nicm.config")
 	VersionFilePath   = path.Join(ClientRootDir, "version")

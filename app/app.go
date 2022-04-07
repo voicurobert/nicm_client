@@ -6,6 +6,8 @@ import (
 	"nicm_client/app/consts"
 	"nicm_client/app/utils"
 	"path"
+	"strconv"
+	"strings"
 )
 
 func StartApplication() {
@@ -18,21 +20,24 @@ func StartApplication() {
 
 	if locked {
 		color.Magenta("[# INFO #] Sync started\n\n")
-		clientVersion := utils.GetVersion()
+		clientVersionStr := utils.GetVersion()
+		clientVersion, _ := strconv.Atoi(clientVersionStr)
 
-		if clientVersion == "0" {
+		if clientVersion == 0 {
 			defaultConfig := utils.GetConfigForName(consts.DefaultConfigPath)
 			utils.SyncArchives(defaultConfig)
 			utils.UpdateVersion(defaultConfig["BASE"]["version"])
-			utils.SyncWithRepo(utils.GetConfigForName(consts.CustomConfigPath))
 			utils.StartNICM()
 		} else {
+
 			customConfig := utils.GetConfigForName(consts.CustomConfigPath)
 
 			if len(customConfig) == 0 {
 				utils.StartNICM()
 			} else {
-				customVersion := customConfig["BASE"]["version"]
+				customVersionStr := customConfig["BASE"]["version"]
+				customVersion, _ := strconv.Atoi(strings.TrimSpace(customVersionStr))
+
 				if clientVersion != customVersion {
 					utils.SyncWithRepo(customConfig)
 					utils.StartNICM()
