@@ -141,7 +141,6 @@ func copyCommand(src, dest string) {
 }
 
 func StartNICM() {
-	deleteOldNicmFiles()
 	fullPath := fmt.Sprintf(
 		"%s\\%s%s%d%s",
 		consts.ClientRootDir, consts.NicmPathToFile,
