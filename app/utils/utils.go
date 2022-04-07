@@ -45,7 +45,7 @@ func GetConfigForName(configFilePath string) ConfigMap {
 }
 
 func UpdateVersion(newVersion string) {
-	err := os.WriteFile(consts.VersionFilePath, []byte(newVersion+"\n"), 0644)
+	err := os.WriteFile(consts.VersionFilePath, []byte(newVersion+""), 0644)
 	if err != nil {
 		panic(err)
 	}
