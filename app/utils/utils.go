@@ -5,16 +5,21 @@ import (
 	"fmt"
 	"github.com/bigkevmcd/go-configparser"
 	"github.com/fatih/color"
+	"github.com/gofrs/flock"
 	"io"
 	"log"
 	"nicm_client/app/consts"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 )
+
+var FileLock *flock.Flock
+var StopExecution bool
 
 func GetVersion() string {
 	nr, err := os.ReadFile(consts.VersionFilePath)
@@ -85,6 +90,9 @@ func syncArchive(archiveName string) {
 
 	unzip(clientArchivePath, clientPath, archiveName)
 	_ = os.Remove(clientArchivePath)
+	//color.Yellow("removed archive: %s \n", archiveName)
+
+	time.Sleep(500 * time.Millisecond)
 	wg.Done()
 }
 
@@ -153,10 +161,10 @@ func unzip(archivePath, path, zipName string) {
 		_ = dstFile.Close()
 		_ = fileInArchive.Close()
 	}
+	color.Green("Done unzipping %s\n", zipName)
 }
 
 func copyCommand(src, dest string) {
-
 	cmd := exec.Command("cmd.exe", "/C", "copy", src, dest)
 	_ = cmd.Run()
 }
@@ -177,22 +185,32 @@ func StartNICM() {
 
 	executeCommand("/C", startPath, fullPath)
 	checkNicmFile(fullPath)
-	color.Green("Started NICM application!")
 }
 
 func checkNicmFile(filePath string) {
-	for {
-		time.Sleep(time.Second)
-		value, err := os.ReadFile(filePath)
-		if err != nil {
-			panic(err)
+	ticker := time.NewTicker(2 * time.Second)
+	go func() {
+		for range ticker.C {
+			if StopExecution {
+				color.HiRed("NICM Application could not start...program will stop.")
+				UnlockFile(FileLock)
+				ticker.Stop()
+				return
+			}
+			value, err := os.ReadFile(filePath)
+			if err != nil {
+				panic(err)
+			}
+			txt := string(value)
+			if txt == "done" {
+				_ = os.Remove(filePath)
+				color.Green("Started NICM application!")
+				UnlockFile(FileLock)
+				ticker.Stop()
+				return
+			}
 		}
-		txt := string(value)
-		if txt == "done" {
-			_ = os.Remove(filePath)
-			return
-		}
-	}
+	}()
 }
 
 func executeCommand(args ...string) {
@@ -210,4 +228,25 @@ func executeCommand(args ...string) {
 func SyncWithRepo(config ConfigMap) {
 	SyncArchives(config)
 	UpdateVersion(config["BASE"]["version"])
+}
+
+func LockFile() (bool, *flock.Flock) {
+	fileLock := flock.New(path.Join(consts.ClientRootDir, consts.LockFileName))
+	locked, err := fileLock.TryLock()
+	if err != nil {
+		panic(err.Error())
+	}
+	return locked, fileLock
+}
+
+func UnlockFile(fileLock *flock.Flock) {
+	err := fileLock.Unlock()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = os.Remove(fileLock.Path())
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 }
