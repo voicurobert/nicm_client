@@ -207,7 +207,7 @@ func checkNicmFile(filePath string) {
 				color.Green("Started NICM application!")
 				UnlockFile(FileLock)
 				ticker.Stop()
-				return
+				os.Exit(1)
 			}
 		}
 	}()

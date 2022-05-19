@@ -64,7 +64,7 @@ func startSync() {
 func checkWorkingDirectory() bool {
 	wd, _ := os.Getwd()
 	if strings.HasPrefix(wd, "\\") {
-		color.Red("Cannot execute NICMClient from this path!\n")
+		color.Red("Cannot execute NICM Client from this path!\n")
 		return true
 	}
 	return false
