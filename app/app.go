@@ -3,6 +3,7 @@ package app
 import (
 	"bufio"
 	"github.com/fatih/color"
+	"github.com/gofrs/flock"
 	"nicm_client/app/consts"
 	"nicm_client/app/utils"
 	"os"
@@ -16,8 +17,17 @@ func StartApplication() {
 		waitUserInput()
 	}
 
-	locked, fileLock := utils.LockFile()
-	utils.FileLock = fileLock
+	clientVersion := getClientVersion()
+	customConfig := utils.GetConfigForName(consts.CustomConfigPath)
+	customVersion := getCustomVersion(customConfig)
+
+	var locked bool
+	var fileLock *flock.Flock
+
+	if clientVersion != customVersion {
+		locked, fileLock = utils.LockFile()
+		utils.FileLock = fileLock
+	}
 
 	if locked {
 		utils.StopExecution = false
@@ -28,10 +38,22 @@ func StartApplication() {
 	waitUserInput()
 }
 
-func startSync() {
-	color.Magenta("[# INFO #] Sync started\n\n")
+func getClientVersion() int {
 	clientVersionStr := utils.GetVersion()
 	clientVersion, _ := strconv.Atoi(clientVersionStr)
+	return clientVersion
+}
+
+func getCustomVersion(cfg utils.ConfigMap) int {
+	customVersionStr := cfg["BASE"]["version"]
+	customVersion, _ := strconv.Atoi(strings.TrimSpace(customVersionStr))
+	return customVersion
+}
+
+func startSync() {
+	color.Magenta("[# INFO #] Sync started\n\n")
+
+	clientVersion := getClientVersion()
 
 	if clientVersion == 0 {
 		defaultConfig := utils.GetConfigForName(consts.DefaultConfigPath)
@@ -45,8 +67,7 @@ func startSync() {
 			startTimer()
 			utils.StartNICM()
 		} else {
-			customVersionStr := customConfig["BASE"]["version"]
-			customVersion, _ := strconv.Atoi(strings.TrimSpace(customVersionStr))
+			customVersion := getCustomVersion(customConfig)
 
 			if clientVersion != customVersion {
 				utils.SyncWithRepo(customConfig)

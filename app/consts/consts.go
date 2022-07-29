@@ -20,6 +20,14 @@ var (
 
 	ArchiveExtension = ".zip"
 
+	// nicm test
+	// NicmPathToBat = "nicm\\run5\\nicm_test\\"
+
+	// nicm disaster recovery
+	// NicmPathToBat = "nicm\\run5\\nicm_dr\\"
+
+	// prod
+
 	NicmPathToBat = "nicm\\run5\\nicm\\"
 	NicmBatName   = "start_nicm_client.bat"
 
