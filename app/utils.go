@@ -167,7 +167,7 @@ func copyCommand(src, dest string) {
 func StartNICM() {
 	homeDir, _ := os.UserHomeDir()
 
-	fullPath := fmt.Sprintf("%s\\%s%s%s", homeDir, NicmFileName, time.Now().UnixNano(), ".txt")
+	fullPath := fmt.Sprintf("%s\\%s%d%s", homeDir, NicmFileName, time.Now().UnixNano(), ".txt")
 	_ = os.WriteFile(fullPath, nil, 0644)
 
 	color.Green("Starting NICM Application... this can take a while, please wait. \nDO NOT CLOSE this window, it will close automatically!")
