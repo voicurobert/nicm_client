@@ -1,11 +1,9 @@
-package app
+package main
 
 import (
 	"bufio"
 	"github.com/fatih/color"
 	"github.com/gofrs/flock"
-	"nicm_client/app/consts"
-	"nicm_client/app/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -18,33 +16,39 @@ func StartApplication() {
 	}
 
 	clientVersion := getClientVersion()
-	customConfig := utils.GetConfigForName(consts.CustomConfigPath)
+	customConfig := GetConfigForName(CustomConfigPath)
 	customVersion := getCustomVersion(customConfig)
 
 	var locked bool
 	var fileLock *flock.Flock
+	var lockErr error
 
 	if clientVersion != customVersion {
-		locked, fileLock = utils.LockFile()
-		utils.FileLock = fileLock
+		locked, fileLock, lockErr = LockFile()
+		FileLock = fileLock
 	}
 
-	if locked {
-		utils.StopExecution = false
-		startSync()
-	} else {
+	if lockErr != nil {
 		color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
+	} else {
+		if locked {
+			StopExecution = false
+			startSync()
+		} else {
+			color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
+		}
 	}
+
 	waitUserInput()
 }
 
 func getClientVersion() int {
-	clientVersionStr := utils.GetVersion()
+	clientVersionStr := GetVersion()
 	clientVersion, _ := strconv.Atoi(clientVersionStr)
 	return clientVersion
 }
 
-func getCustomVersion(cfg utils.ConfigMap) int {
+func getCustomVersion(cfg ConfigMap) int {
 	customVersionStr := cfg["BASE"]["version"]
 	customVersion, _ := strconv.Atoi(strings.TrimSpace(customVersionStr))
 	return customVersion
@@ -56,27 +60,27 @@ func startSync() {
 	clientVersion := getClientVersion()
 
 	if clientVersion == 0 {
-		defaultConfig := utils.GetConfigForName(consts.DefaultConfigPath)
-		utils.SyncArchives(defaultConfig)
-		utils.UpdateVersion(defaultConfig["BASE"]["version"])
+		defaultConfig := GetConfigForName(DefaultConfigPath)
+		SyncArchives(defaultConfig)
+		UpdateVersion(defaultConfig["BASE"]["version"])
 		startTimer()
-		utils.StartNICM()
+		StartNICM()
 	} else {
-		customConfig := utils.GetConfigForName(consts.CustomConfigPath)
+		customConfig := GetConfigForName(CustomConfigPath)
 		if len(customConfig) == 0 {
 			startTimer()
-			utils.StartNICM()
+			StartNICM()
 		} else {
 			customVersion := getCustomVersion(customConfig)
 
 			if clientVersion != customVersion {
-				utils.SyncWithRepo(customConfig)
+				SyncWithRepo(customConfig)
 				startTimer()
-				utils.StartNICM()
+				StartNICM()
 			} else {
 				color.Magenta("[# INFO #] NICM is up to date!\n\n")
 				startTimer()
-				utils.StartNICM()
+				StartNICM()
 			}
 		}
 	}
@@ -102,7 +106,7 @@ func startTimer() {
 	timer := time.NewTimer(2 * time.Minute)
 	go func() {
 		<-timer.C
-		utils.StopExecution = true
+		StopExecution = true
 		return
 	}()
 }

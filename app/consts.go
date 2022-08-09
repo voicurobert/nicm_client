@@ -1,4 +1,4 @@
-package consts
+package main
 
 import (
 	"os"
@@ -8,11 +8,6 @@ import (
 var (
 	ClientRootDir, _ = os.Getwd()
 
-	//RepoRootDir       = "\\\\dakar\\NICM_Repository\\nicm_sync_repos2"
-	//DefaultConfigPath = RepoRootDir + "sync_nicm_default.config"
-	//CustomConfigPath  = RepoRootDir + "sync_nicm.config"
-	//VersionFilePath   = RepoRootDir + "version"
-
 	RepoRootDir       = "\\\\dakar\\NICM_Repository\\nicm_sync_repos2"
 	DefaultConfigPath = path.Join(RepoRootDir, "sync_nicm_default.config")
 	CustomConfigPath  = path.Join(RepoRootDir, "sync_nicm.config")
@@ -20,19 +15,21 @@ var (
 
 	ArchiveExtension = ".zip"
 
-	// nicm test
+	// NicmPathToBat nicm test
 	// NicmPathToBat = "nicm\\run5\\nicm_test\\"
 
-	// nicm disaster recovery
+	// NicmPathToBat nicm disaster recovery
 	// NicmPathToBat = "nicm\\run5\\nicm_dr\\"
 
-	// prod
-
+	// NicmPathToBat prod path
 	NicmPathToBat = "nicm\\run5\\nicm\\"
-	NicmBatName   = "start_nicm_client.bat"
 
-	LockFileName = "sync_nicm_local_env.lock"
+	NicmBatName = "start_nicm_client.bat"
+
+	LockFileName = "sync_nicm_local_env"
 
 	NicmPathToFile = "nicm\\run5\\"
 	NicmFileName   = "nicm_"
+
+	LockFullPath = path.Join(ClientRootDir, LockFileName, ".lock")
 )

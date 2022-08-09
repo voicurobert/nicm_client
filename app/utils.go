@@ -1,4 +1,4 @@
-package utils
+package main
 
 import (
 	"archive/zip"
@@ -8,10 +8,8 @@ import (
 	"github.com/gofrs/flock"
 	"io"
 	"log"
-	"nicm_client/app/consts"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -20,9 +18,10 @@ import (
 
 var FileLock *flock.Flock
 var StopExecution bool
+var wg sync.WaitGroup
 
 func GetVersion() string {
-	nr, err := os.ReadFile(consts.VersionFilePath)
+	nr, err := os.ReadFile(VersionFilePath)
 
 	if err != nil {
 		panic(err)
@@ -50,13 +49,11 @@ func GetConfigForName(configFilePath string) ConfigMap {
 }
 
 func UpdateVersion(newVersion string) {
-	err := os.WriteFile(consts.VersionFilePath, []byte(newVersion+""), 0644)
+	err := os.WriteFile(VersionFilePath, []byte(newVersion+""), 0644)
 	if err != nil {
 		panic(err)
 	}
 }
-
-var wg sync.WaitGroup
 
 func SyncArchives(config ConfigMap) {
 	archives, exists := config["ARCHIVES"]
@@ -76,12 +73,12 @@ func SyncArchives(config ConfigMap) {
 func syncArchive(archiveName string) {
 	ext := getMainDir(archiveName)
 
-	clientArchivePath := consts.ClientRootDir + "\\" + archiveName + consts.ArchiveExtension
+	clientArchivePath := ClientRootDir + "\\" + archiveName + ArchiveExtension
 
 	clientPath, fullClientPath, sourceArchivePath := getPaths(ext, archiveName)
 
 	color.Yellow("Copying %s, please wait...\n", archiveName)
-	copyCommand(sourceArchivePath, consts.ClientRootDir)
+	copyCommand(sourceArchivePath, ClientRootDir)
 
 	if _, err := os.Stat(fullClientPath); err == nil {
 		_ = os.RemoveAll(fullClientPath)
@@ -90,9 +87,8 @@ func syncArchive(archiveName string) {
 
 	unzip(clientArchivePath, clientPath, archiveName)
 	_ = os.Remove(clientArchivePath)
-	//color.Yellow("removed archive: %s \n", archiveName)
 
-	time.Sleep(500 * time.Millisecond)
+	//time.Sleep(500 * time.Millisecond)
 	wg.Done()
 }
 
@@ -111,13 +107,13 @@ func getPaths(mainDir, archiveName string) (string, string, string) {
 	fullClientPath := ""
 	sourceArchivePath := ""
 	if mainDir != "" {
-		fullClientPath = consts.ClientRootDir + "\\" + mainDir + "\\" + archiveName
-		clientPath = consts.ClientRootDir + "\\" + mainDir + "\\"
-		sourceArchivePath = consts.RepoRootDir + "\\" + mainDir + "\\" + archiveName + consts.ArchiveExtension
+		fullClientPath = ClientRootDir + "\\" + mainDir + "\\" + archiveName
+		clientPath = ClientRootDir + "\\" + mainDir + "\\"
+		sourceArchivePath = RepoRootDir + "\\" + mainDir + "\\" + archiveName + ArchiveExtension
 	} else {
-		fullClientPath = consts.ClientRootDir + "\\" + archiveName
-		clientPath = consts.ClientRootDir + "\\"
-		sourceArchivePath = consts.RepoRootDir + "\\" + archiveName + consts.ArchiveExtension
+		fullClientPath = ClientRootDir + "\\" + archiveName
+		clientPath = ClientRootDir + "\\"
+		sourceArchivePath = RepoRootDir + "\\" + archiveName + ArchiveExtension
 	}
 
 	return clientPath, fullClientPath, sourceArchivePath
@@ -127,7 +123,6 @@ func unzip(archivePath, path, zipName string) {
 	color.Yellow("Unzipping %s, please wait...\n", zipName)
 	archive, err := zip.OpenReader(archivePath)
 	if err != nil {
-		fmt.Println(err.Error())
 		panic(err)
 	}
 	defer archive.Close()
@@ -170,17 +165,19 @@ func copyCommand(src, dest string) {
 }
 
 func StartNICM() {
-	fullPath := fmt.Sprintf(
-		"%s\\%s%s%d%s",
-		consts.ClientRootDir, consts.NicmPathToFile,
-		consts.NicmFileName,
-		time.Now().UnixNano(),
-		".txt")
+	homeDir, _ := os.UserHomeDir()
+	//fullPath := fmt.Sprintf(
+	//	"%s\\%s%s%d%s",
+	//	consts.ClientRootDir, consts.NicmPathToFile,
+	//	consts.NicmFileName,
+	//	time.Now().UnixNano(),
+	//	".txt")
 
+	fullPath := fmt.Sprintf("%s\\%s%s%s", homeDir, NicmFileName, time.Now().UnixNano(), ".txt")
 	_ = os.WriteFile(fullPath, nil, 0644)
 
 	color.Green("Starting NICM Application... this can take a while, please wait. \nDO NOT CLOSE this window, it will close automatically!")
-	startPath := consts.ClientRootDir + "\\" + consts.NicmPathToBat + consts.NicmBatName
+	startPath := ClientRootDir + "\\" + NicmPathToBat + NicmBatName
 	_ = os.Chdir(startPath)
 
 	executeCommand("/C", startPath, fullPath)
@@ -230,13 +227,13 @@ func SyncWithRepo(config ConfigMap) {
 	UpdateVersion(config["BASE"]["version"])
 }
 
-func LockFile() (bool, *flock.Flock) {
-	fileLock := flock.New(path.Join(consts.ClientRootDir, consts.LockFileName))
+func LockFile() (bool, *flock.Flock, error) {
+	fileLock := flock.New(LockFullPath)
 	locked, err := fileLock.TryLock()
 	if err != nil {
-		panic(err.Error())
+		return false, nil, err
 	}
-	return locked, fileLock
+	return locked, fileLock, nil
 }
 
 func UnlockFile(fileLock *flock.Flock) {
