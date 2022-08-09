@@ -166,12 +166,6 @@ func copyCommand(src, dest string) {
 
 func StartNICM() {
 	homeDir, _ := os.UserHomeDir()
-	//fullPath := fmt.Sprintf(
-	//	"%s\\%s%s%d%s",
-	//	consts.ClientRootDir, consts.NicmPathToFile,
-	//	consts.NicmFileName,
-	//	time.Now().UnixNano(),
-	//	".txt")
 
 	fullPath := fmt.Sprintf("%s\\%s%s%s", homeDir, NicmFileName, time.Now().UnixNano(), ".txt")
 	_ = os.WriteFile(fullPath, nil, 0644)

@@ -26,20 +26,25 @@ func StartApplication() {
 	if clientVersion != customVersion {
 		locked, fileLock, lockErr = LockFile()
 		FileLock = fileLock
-	}
 
-	if lockErr != nil {
-		color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
-	} else {
-		if locked {
-			StopExecution = false
-			startSync()
-		} else {
+		if lockErr != nil {
 			color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
+			waitUserInput()
+		} else {
+			if locked {
+				StopExecution = false
+				startSync()
+			} else {
+				color.Magenta("[# INFO #] Please wait! Sync already running!\n\n")
+			}
+			waitUserInput()
 		}
+
+	} else {
+		startSync()
+		waitUserInput()
 	}
 
-	waitUserInput()
 }
 
 func getClientVersion() int {
