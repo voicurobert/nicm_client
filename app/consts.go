@@ -26,10 +26,10 @@ var (
 
 	NicmBatName = "start_nicm_client.bat"
 
-	LockFileName = "sync_nicm_local_env"
+	LockFileName = "sync_nicm_local_env.lock"
 
 	NicmPathToFile = "nicm\\run5\\"
 	NicmFileName   = "nicm_"
 
-	LockFullPath = path.Join(ClientRootDir, LockFileName, ".lock")
+	LockFullPath = path.Join(ClientRootDir, LockFileName)
 )
