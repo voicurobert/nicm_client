@@ -8,7 +8,7 @@ import (
 var (
 	ClientRootDir, _ = os.Getwd()
 
-	RepoRootDir       = "\\\\dakar\\NICM_Repository\\nicm_sync_repos2"
+	RepoRootDir       = "\\\\dakar.office.orange.intra\\NICM_Repository\\nicm_sync_repos2"
 	DefaultConfigPath = path.Join(RepoRootDir, "sync_nicm_default.config")
 	CustomConfigPath  = path.Join(RepoRootDir, "sync_nicm.config")
 	VersionFilePath   = path.Join(ClientRootDir, "version")
